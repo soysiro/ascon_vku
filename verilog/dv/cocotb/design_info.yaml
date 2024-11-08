@@ -1,8 +1,8 @@
-CARAVEL_ROOT: /home/soysiro/ascon_vku/caravel
-MCW_ROOT: /home/soysiro/ascon_vku/mgmt_core_wrapper
+CARAVEL_ROOT: /home/soysiro/vku/ascon_vku/caravel
+MCW_ROOT: /home/soysiro/vku/ascon_vku/mgmt_core_wrapper
 PDK: sky130A
-PDK_ROOT: /home/soysiro/ascon_vku/dependencies/pdks
-USER_PROJECT_ROOT: /home/soysiro/ascon_vku
+PDK_ROOT: /home/soysiro/vku/ascon_vku/dependencies/pdks
+USER_PROJECT_ROOT: /home/soysiro/vku/ascon_vku
 caravan: false
 clk: 25
 emailto:

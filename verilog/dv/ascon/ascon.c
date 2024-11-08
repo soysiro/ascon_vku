@@ -50,7 +50,7 @@ void main()
 	// reg_spimaster_cs = 0x10001;
 	// reg_spimaster_control = 0x0801;
 
-	 reg_spimaster_control = 0xa002;	// Enable, prescaler = 2,
+	// reg_spimaster_control = 0xa002;	// Enable, prescaler = 2,
                                         // connect to housekeeping SPI
 
 	// Connect the housekeeping SPI to the SPI master
@@ -59,17 +59,19 @@ void main()
 
 	// Configure lower 8-IOs as user output
 	// Observe counter value in the testbench
-	reg_mprj_io_9 =   GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_10 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_11 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_12 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_13 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_14 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
-	reg_mprj_io_15 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
 	reg_mprj_io_16 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_15 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_14 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_13 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_12 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_11 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_10 =  GPIO_MODE_USER_STD_INPUT_NOPULL;
+	reg_mprj_io_9  =  GPIO_MODE_USER_STD_INPUT_NOPULL;
 	reg_mprj_io_17 =  GPIO_MODE_USER_STD_OUTPUT;
 	reg_mprj_io_18 =  GPIO_MODE_USER_STD_OUTPUT;
 	reg_mprj_io_19 =  GPIO_MODE_USER_STD_OUTPUT;
+
+
 
 
 	/* Apply configuration */

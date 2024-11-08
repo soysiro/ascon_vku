@@ -50,7 +50,7 @@ void main()
 	// reg_spimaster_cs = 0x10001;
 	// reg_spimaster_control = 0x0801;
 
-	// reg_spimaster_control = 0xa002;	// Enable, prescaler = 2,
+	 reg_spimaster_control = 0xa002;	// Enable, prescaler = 2,
                                         // connect to housekeeping SPI
 
 	// Connect the housekeeping SPI to the SPI master

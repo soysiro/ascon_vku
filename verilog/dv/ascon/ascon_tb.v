@@ -6,14 +6,11 @@
 `define b 6
 `define l 40
 `define y 104
-`define KEY 'h6d4f8bbf60ec05a07b201d4e5b2119ac
-`define NONCE 'h05885e606e1271b8d47a74c7b297a318
-`define AD 'h4153434f4e
 `define PT 'h6173636f6e2d756e6963617373
 `define CT 'h18490112f8d5867a830748390b
 
 module ascon_tb;
-
+	parameter PERIOD = 20;
 	parameter max = (`k>=`y && `k>=`l)? `k: ((`y>=`l)? `y: `l);
 	reg clock;
 	reg RSTB;
@@ -27,7 +24,7 @@ module ascon_tb;
 	wire [19:17]  mprj_io_o;
 
 	reg 	  clk = 0;
-	reg 	  rst;
+	reg 	  rst = 1;
     reg       keyxSI;
     reg       noncexSI;
     reg       associated_dataxSI;
@@ -49,24 +46,23 @@ module ascon_tb;
 	assign mprj_io[3] = (CSB == 1'b1) ? 1'b1 : 1'bz;
 
 	//input
-	assign mprj_io_in = mprj_io[16:9];
 	
-	assign mprj_io_in[16] = clk;
-	assign mprj_io_in[15] = rst;
-	assign mprj_io_in[14] = keyxSI;
-	assign mprj_io_in[13] = noncexSI;
-	assign mprj_io_in[12] = associated_dataxSI;
-	assign mprj_io_in[11] = output_dataxSI;
-	assign mprj_io_in[10] = ascon_startxSI;
-	assign mprj_io_in[9]  = decrypt;
+	assign mprj_io[16] = clk;
+	assign mprj_io[15] = rst;
+	assign mprj_io[14] = keyxSI;
+	assign mprj_io[13] = noncexSI;
+	assign mprj_io[12] = associated_dataxSI;
+	assign mprj_io[11] = output_dataxSI;
+	assign mprj_io[10] = ascon_startxSI;
+	assign mprj_io[9]  = decrypt;
 	
 	
 	//output
-	assign mprj_io_o = mprj_io[19:17];
 
-	assign mprj_io_o[19] = output_dataxSO;
-	assign mprj_io_o[18] = tagxSO;
-	assign mprj_io_o[17] = ascon_readyxSO;
+	assign output_dataxSO = mprj_io[19];
+	assign tagxSO = mprj_io[18];
+	assign ascon_readyxSO = mprj_io[17];
+
 
 
 
@@ -185,7 +181,7 @@ module ascon_tb;
 
 
 		repeat (200) begin
-			repeat (1000) @(posedge clock);
+			repeat (1000) @(posedge clk);
 			// $display("+1000 cycles");
 		end
 
@@ -198,7 +194,7 @@ module ascon_tb;
 		$display("%c[0m",27);
 		$finish;
 	end
-
+	always #(PERIOD) clk = ~clk;
 	task write;
     input [max-1:0] rd, i, key, nonce, ass_data, ct; 
     begin
@@ -224,9 +220,9 @@ module ascon_tb;
     task read_enc;
     input integer i;
     begin
-        @(posedge clock);
+        @(posedge clk);
         cipher_text[i] = output_dataxSO;
-        tag[i] = output_dataxSO;
+        tag[i] = tagxSO;
     end
     endtask
 
@@ -256,63 +252,60 @@ module ascon_tb;
 		decrypt = 0; //
 		rst = 1;
 		$display("Start encryption!");
-		#(1.5*20)
+		#(1.5*PERIOD)
 		rst = 0;
 		ctr  = 0;
 
 		// Repeat cycles of 1000 clk edges as needed to complete testbench
 		repeat (max) begin
-			write($random, ctr, `KEY, `NONCE, `AD, `PT);
+			write($random, ctr, $random, $random, $random, `PT);
             ctr = ctr + 1;
 		end
-		$display("KEY: ", `KEY);
-		$display("NONCE: ", `NONCE);
-		$display("AD: ", `AD);
-		$display("PT: ", `PT);
 		ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-        #(0.5*20)
+        #(0.5*PERIOD)
         // $display("Key:\t%h", uut.key);
         // $display("Nonce:\t%h", uut.nonce);
         // $display("AD:\t%h", uut.associated_data);
         // $display("CT:\t%h", uut.input_data);
-        #(4.5*20)
+        #(4.5*PERIOD)
         ascon_startxSI = 0;
 
-		#(500*20)
+		#(500*PERIOD)
         $display("Start decryption!");
         decrypt = 1;
         rst = 1;
-        #(2.5*10)
+        #(2.5*PERIOD)
         rst = 0;
         ctr = 0;
         repeat(max) begin
-            write($random, ctr, `KEY, `NONCE, `AD, `CT);
+            write($random, ctr, $random, $random, $random, `CT);
             ctr = ctr + 1;
         end
-		$display("KEY: ", `KEY);
-		$display("NONCE: ", `NONCE);
-		$display("AD: ", `AD);
-		$display("CT: ", `CT);
         ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-        #(0.5*20)
+        #(0.5*PERIOD)
         // $display("Key:\t%h", uut.key);
         // $display("Nonce:\t%h", uut.nonce);
         // $display("AD:\t%h", uut.associated_data);
         // $display("CT:\t%h", uut.input_data);
-        #(4.5*20)
+        #(4.5*PERIOD)
         ascon_startxSI = 0;
 		//check_ascon(ctr);
+		`ifdef GL
+		$display("Monitor: Test 1 Mega-Project IO (GL) Passed");
+	`else
+		$display("Monitor: Test 1 Mega-Project IO (RTL) Passed");
+	`endif
 		
 	end
 	always @(*) begin
 		if(ascon_readyxSO) begin
 				check_time = $time - check_time;
 				$display("Decryption Done! It took%d clock cycles", check_time/(2*20));
-				#(4*20)
+				#(4*PERIOD)
 				repeat(max) begin
 					read_dec(ctr);
 					ctr = ctr + 1;
@@ -321,18 +314,14 @@ module ascon_tb;
 			end else begin
 				check_time = $time - check_time;
 				$display("Encryption Done! It took%d clock cycles", check_time/(2*20));
-				#(4*20)
+				#(4*PERIOD)
 				repeat(max) begin
 					read_enc(ctr);
 					ctr = ctr + 1;
 				end
 				//$finish;
 			end
-			`ifdef GL
-			$display("Monitor: Test 1 Mega-Project IO (GL) Passed");
-		`else
-			$display("Monitor: Test 1 Mega-Project IO (RTL) Passed");
-		`endif
+
 		end
 
 

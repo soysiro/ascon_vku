@@ -15,6 +15,16 @@
 
 # Caravel user project includes
 -v $(USER_PROJECT_VERILOG)/rtl/user_project_wrapper.v	     
--v $(USER_PROJECT_VERILOG)/rtl/user_proj_example.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/ascon_wrapper.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/ascon.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/ascon_core.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/roundcounter.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/permutation/ascon_permutation.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/permutation/linear_layer.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/permutation/roundconstant.v
+-v $(USER_PROJECT_VERILOG)/rtl/hs_ascon/permutation/substitution_layer.v
+
+
+
 
  

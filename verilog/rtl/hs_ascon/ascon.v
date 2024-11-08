@@ -3,15 +3,15 @@ module Ascon #(
     parameter r = 64,             // Rate
     parameter a = 12,             // Initialization round no.
     parameter b = 6,              // Intermediate round no.
-    parameter l = 32,             // Length of associated data
-    parameter y = 32             // Length of Plain Text
+    parameter l = 40,             // Length of associated data
+    parameter y = 104             // Length of Plain Text
 )(
     input       clk,
     input       rst,
-    input [2:0] keyxSI,
-    input [2:0] noncexSI,
-    input [2:0] associated_dataxSI,
-    input [2:0] input_dataxSI,
+    input       keyxSI,
+    input       noncexSI,
+    input       associated_dataxSI,
+    input       input_dataxSI,
     input       ascon_startxSI,
     input       decrypt,
 
@@ -36,12 +36,14 @@ module Ascon #(
         if(rst)
             {key,
             nonce,
+            associated_data,
+            input_data,
             flag_dec,
             i,j} <= 0;
 
         else begin
             if(i < k) begin
-                key <= {key[k-2:0], keyxSI[0]}; 
+                key <= {key[k-2:0], keyxSI}; 
             end
 
             if (ascon_start) begin 
@@ -49,29 +51,29 @@ module Ascon #(
             end
 
             if(i < 128) begin
-                nonce <= {nonce[126:0], noncexSI[0]};
+                nonce <= {nonce[126:0], noncexSI};
             end
 
             if(i < l) begin
-                associated_data <= {associated_data[l-2:0], associated_dataxSI[0]};
+                associated_data <= {associated_data[l-2:0], associated_dataxSI};
             end
 
             if(i < y) begin
-                input_data <= {input_data[y-2:0], input_dataxSI[0]};
+                input_data <= {input_data[y-2:0], input_dataxSI};
             end
 
             i <= i+1;
-        end
 
-        // Right Shift for encryption outputs
-        if(ascon_ready) begin
-            if(j < y)
-                output_dataxSO <= output_data[j];
-            
-            if(j < 128)
-                tagxSO <= tag[j];
+            // Right Shift for encryption outputs
+            if(ascon_ready) begin
+                if(j < y)
+                    output_dataxSO <= output_data[j];
+                
+                if(j < 128)
+                    tagxSO <= tag[j];
 
-            j <= j+1;
+                j <= j+1;
+            end
         end
     end
 

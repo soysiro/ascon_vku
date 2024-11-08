@@ -37,7 +37,6 @@
     "GND_NETS": [
         "vssd1"
     ],
-    "IO_SYNC": 0,
     "BASE_SDC_FILE": "dir::base_hs_ascon.sdc",
     "RUN_CVC": 1,
     "pdk::sky130*": {

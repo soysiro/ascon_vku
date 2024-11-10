@@ -15,7 +15,7 @@
     "CLOCK_PERIOD": 25,
     "CLOCK_PORT": "clk",
     "CLOCK_NET": "ascon_wrapper.clk",
-    "IO_SYNC": 1,
+    "IO_SYNC": 0,
     "FP_SIZING": "absolute",
     "DIE_AREA": "0 0 600 600",
     "PL_TARGET_DENSITY": 0.46,
@@ -28,7 +28,7 @@
     "PL_RESIZER_HOLD_SLACK_MARGIN": 0.4,
     "SYNTH_STRATEGY": "AREA 3",
     "MAGIC_DEF_LABELS": 0,
-    "SYNTH_BUFFERING": 1,
+    "SYNTH_BUFFERING": 1,  
     "DECAP_CELL": "sky130_fd_sc_hd__decap_3",
     "FILL_CELL": "sky130_fd_sc_hd__fill_2 sky130_fd_sc_hd__fill_1",
     "VDD_NETS": [

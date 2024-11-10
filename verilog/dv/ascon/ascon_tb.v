@@ -1,11 +1,14 @@
 `default_nettype none
-`timescale 1 ns / 1 ns
+`timescale 1 ns / 1 ps
 `define k 128
 `define r 64
 `define a 12
 `define b 6
 `define l 40
 `define y 104
+`define KEY 'h6d4f8bbf60ec05a07b201d4e5b2119ac
+`define NONCE 'h05885e606e1271b8d47a74c7b297a318
+`define AD 'h4153434f4e
 `define PT 'h6173636f6e2d756e6963617373
 `define CT 'h18490112f8d5867a830748390b
 
@@ -24,7 +27,7 @@ module ascon_tb;
 	wire [19:17]  mprj_io_o;
 
 	reg 	  clk = 0;
-	reg 	  rst = 1;
+	reg 	  rst;
     reg       keyxSI;
     reg       noncexSI;
     reg       associated_dataxSI;
@@ -40,7 +43,6 @@ module ascon_tb;
     wire   tagxSO;
     wire   ascon_readyxSO;
     integer check_time;
-	
 
 
 	assign mprj_io[3] = (CSB == 1'b1) ? 1'b1 : 1'bz;
@@ -56,29 +58,13 @@ module ascon_tb;
 	assign mprj_io[10] = ascon_startxSI;
 	assign mprj_io[9]  = decrypt;
 	
-	
 	//output
 
 	assign output_dataxSO = mprj_io[19];
 	assign tagxSO = mprj_io[18];
 	assign ascon_readyxSO = mprj_io[17];
 
-
-
-
-
-	// External clk is used by default.  Make this artificially fast for the
-	// simulation.  Normally this would be a slow clk and the digital PLL
-	// would be the fast clk.
-
-
-	always #20 clock <= (clock === 1'b0);
-
-	// initial begin
-	// 	clock = 0;
-	// end
-	
-
+	always #12.5 clock <= (clock === 1'b0);
 
 	`ifdef ENABLE_SDF
 		initial begin
@@ -179,8 +165,7 @@ module ascon_tb;
 		$dumpfile("ascon.vcd");
 		$dumpvars(0, ascon_tb);
 
-
-		repeat (200) begin
+		repeat (250) begin
 			repeat (1000) @(posedge clk);
 			// $display("+1000 cycles");
 		end
@@ -195,16 +180,18 @@ module ascon_tb;
 		$finish;
 	end
 	always #(PERIOD) clk = ~clk;
+
 	task write;
     input [max-1:0] rd, i, key, nonce, ass_data, ct; 
     begin
         @(posedge clk);
-        keyxSI = key[`k-1-i];
-        noncexSI = nonce[127-i];
-        output_dataxSI = ct[`y-1-i];
-        associated_dataxSI = ass_data[`l-1-i];
+        if (i < `k) keyxSI = key[`k-1-i];
+        if (i < 128) noncexSI = nonce[127-i];
+        if (i < `y) output_dataxSI = ct[`y-1-i];
+        if (i < `l) associated_dataxSI = ass_data[`l-1-i];
     end
-    endtask
+	endtask
+
 
 
 	task read_dec;
@@ -216,7 +203,6 @@ module ascon_tb;
     end
     endtask
 
-
     task read_enc;
     input integer i;
     begin
@@ -225,28 +211,8 @@ module ascon_tb;
         tag[i] = tagxSO;
     end
     endtask
-
-	// task check_ascon;
-	// input integer cout;
-	// 	begin
-	// 		@(posedge clock);
-	// 		#(4*20);
-	// 		if (ascon_readyxSO) begin
-	// 			repeat (max) begin
-	// 				read_dec(cout);
-	// 				cout = cout + 1;
-	// 			end
-	// 		end else begin
-	// 			repeat (max) begin
-	// 				read_enc(cout);
-	// 				cout = cout + 1;
-	// 			end
-	// 		end
-	// 	end
-	// endtask
 	
 	initial begin
-	    // Observe Output pins [7:0]
 
 		$display("Start!");
 		decrypt = 0; //
@@ -255,45 +221,52 @@ module ascon_tb;
 		#(1.5*PERIOD)
 		rst = 0;
 		ctr  = 0;
-
-		// Repeat cycles of 1000 clk edges as needed to complete testbench
-		repeat (max) begin
-			write($random, ctr, $random, $random, $random, `PT);
+		$display("Restet in en is: ", rst);
+		repeat (139) begin
+			write($random, ctr, `KEY, `NONCE, `AD, `PT);
             ctr = ctr + 1;
 		end
 		ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-        #(0.5*PERIOD)
-        // $display("Key:\t%h", uut.key);
-        // $display("Nonce:\t%h", uut.nonce);
-        // $display("AD:\t%h", uut.associated_data);
-        // $display("CT:\t%h", uut.input_data);
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-
+		if(!ascon_readyxSO) begin
+			check_time = $time - check_time;
+			$display("Encryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+			#(4*PERIOD)
+			repeat(139) begin
+				read_enc(ctr);
+				ctr = ctr + 1;
+			end
+		end
 		#(500*PERIOD)
         $display("Start decryption!");
         decrypt = 1;
         rst = 1;
+		$display("Restet in decryption is: ", rst);
         #(2.5*PERIOD)
         rst = 0;
         ctr = 0;
-        repeat(max) begin
-            write($random, ctr, $random, $random, $random, `CT);
+        repeat(139) begin
+            write($random, ctr, `KEY, `NONCE, `AD, `CT);
             ctr = ctr + 1;
         end
         ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-        #(0.5*PERIOD)
-        // $display("Key:\t%h", uut.key);
-        // $display("Nonce:\t%h", uut.nonce);
-        // $display("AD:\t%h", uut.associated_data);
-        // $display("CT:\t%h", uut.input_data);
+		if(ascon_readyxSO) begin
+			check_time = $time - check_time;
+			$display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+			#(4*PERIOD)
+			repeat(139) begin
+				read_dec(ctr);
+				ctr = ctr + 1;
+			end
+			$finish;
+		end
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-		//check_ascon(ctr);
 		`ifdef GL
 		$display("Monitor: Test 1 Mega-Project IO (GL) Passed");
 	`else
@@ -301,28 +274,28 @@ module ascon_tb;
 	`endif
 		
 	end
-	always @(*) begin
-		if(ascon_readyxSO) begin
-				check_time = $time - check_time;
-				$display("Decryption Done! It took%d clock cycles", check_time/(2*20));
-				#(4*PERIOD)
-				repeat(max) begin
-					read_dec(ctr);
-					ctr = ctr + 1;
-				end
-				$finish;
-			end else begin
-				check_time = $time - check_time;
-				$display("Encryption Done! It took%d clock cycles", check_time/(2*20));
-				#(4*PERIOD)
-				repeat(max) begin
-					read_enc(ctr);
-					ctr = ctr + 1;
-				end
-				//$finish;
-			end
+	// always @(*) begin
+	// 	if(ascon_readyxSO) begin
+	// 			check_time = $time - check_time;
+	// 			$display("Decryption Done! It took%d clock cycles", check_time/(2*20));
+	// 			#(4*PERIOD)
+	// 			repeat(max) begin
+	// 				read_dec(ctr);
+	// 				ctr = ctr + 1;
+	// 			end
+	// 			$finish;
+	// 		end else begin
+	// 			check_time = $time - check_time;
+	// 			$display("Encryption Done! It took%d clock cycles", check_time/(2*20));
+	// 			#(4*PERIOD)
+	// 			repeat(max) begin
+	// 				read_enc(ctr);
+	// 				ctr = ctr + 1;
+	// 			end
+	// 			//$finish;
+	// 		end
 
-		end
+	// 	end
 
 
 	initial begin

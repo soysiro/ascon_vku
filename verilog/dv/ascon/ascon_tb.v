@@ -264,7 +264,7 @@ module ascon_tb;
 
 		$display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
 		#(4*PERIOD)
-        repeat(139) begin
+        repeat(max) begin
             read_dec(ctr);
             ctr = ctr + 1;
         end

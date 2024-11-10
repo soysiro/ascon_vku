@@ -218,11 +218,10 @@ module ascon_tb;
 		decrypt = 0; //
 		rst = 1;
 		$display("Start encryption!");
-		#(1.5*PERIOD)
+		#(2.5*PERIOD)
 		rst = 0;
 		ctr  = 0;
-		$display("Restet in en is: ", rst);
-		repeat (139) begin
+		repeat (max) begin
 			write($random, ctr, `KEY, `NONCE, `AD, `PT);
             ctr = ctr + 1;
 		end
@@ -231,71 +230,76 @@ module ascon_tb;
         check_time = $time;
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-		if(!ascon_readyxSO) begin
-			check_time = $time - check_time;
-			$display("Encryption Done! It took%d clock cycles", check_time/(2*PERIOD));
-			#(4*PERIOD)
-			repeat(139) begin
-				read_enc(ctr);
-				ctr = ctr + 1;
-			end
-		end
-		#(500*PERIOD)
+
+        wait(ascon_readyxSO == 1'b1);
+        check_time = $time - check_time;
+        $display("Encryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+        #(4*PERIOD)
+        repeat(max) begin
+            read_enc(ctr);
+            ctr = ctr + 1;
+        end
+       // start descryption 
+		#(100*PERIOD)
+
         $display("Start decryption!");
         decrypt = 1;
         rst = 1;
-		$display("Restet in decryption is: ", rst);
         #(2.5*PERIOD)
         rst = 0;
         ctr = 0;
-        repeat(139) begin
+        repeat(max) begin
             write($random, ctr, `KEY, `NONCE, `AD, `CT);
             ctr = ctr + 1;
         end
         ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-		if(ascon_readyxSO) begin
-			check_time = $time - check_time;
-			$display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
-			#(4*PERIOD)
-			repeat(139) begin
-				read_dec(ctr);
-				ctr = ctr + 1;
-			end
-			$finish;
-		end
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-		`ifdef GL
+
+        check_time = $time;
+        wait(ascon_readyxSO == 1'b1);
+        check_time = $time - check_time;
+
+		$display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+		#(4*PERIOD)
+        repeat(139) begin
+            read_dec(ctr);
+            ctr = ctr + 1;
+        end
+        $finish;
+	end
+
+	`ifdef GL
 		$display("Monitor: Test 1 Mega-Project IO (GL) Passed");
 	`else
 		$display("Monitor: Test 1 Mega-Project IO (RTL) Passed");
 	`endif
 		
 	end
-	// always @(*) begin
-	// 	if(ascon_readyxSO) begin
-	// 			check_time = $time - check_time;
-	// 			$display("Decryption Done! It took%d clock cycles", check_time/(2*20));
-	// 			#(4*PERIOD)
-	// 			repeat(max) begin
-	// 				read_dec(ctr);
-	// 				ctr = ctr + 1;
-	// 			end
-	// 			$finish;
-	// 		end else begin
-	// 			check_time = $time - check_time;
-	// 			$display("Encryption Done! It took%d clock cycles", check_time/(2*20));
-	// 			#(4*PERIOD)
-	// 			repeat(max) begin
-	// 				read_enc(ctr);
-	// 				ctr = ctr + 1;
-	// 			end
-	// 			//$finish;
-	// 		end
+     always @(*) begin
+         if(ascon_readyxSO) begin
+                 check_time = $time - check_time;
+                 $display("Decryption Done! It took%d clock cycles", check_time/(2*20));
+                 #(4*PERIOD)
+                 repeat(max) begin
+                     read_dec(ctr);
+                     ctr = ctr + 1;
+                 end
+                 $finish;
+             end else begin
+                 check_time = $time - check_time;
+                 $display("Encryption Done! It took%d clock cycles", check_time/(2*20));
+                 #(4*PERIOD)
+                 repeat(max) begin
+                     read_enc(ctr);
+                     ctr = ctr + 1;
+                 end
+                 //$finish;
+             end
 
-	// 	end
+         end
 
 
 	initial begin

@@ -14,7 +14,7 @@ module ascon_wrapper (
 
     // Đặt giá trị mặc định cho io_oeb trong khối always
     always @(*) begin
-        io_oeb = 11'b1111_1111_000;
+        io_oeb = 11'b000_1111_1111;
     end
 
     // Module Ascon
@@ -24,7 +24,7 @@ module ascon_wrapper (
 
     Ascon ascon (
         .clk(clk),
-        .rst(rst),
+        .rst(rst), 
         .keyxSI(io_in[5]),
         .noncexSI(io_in[4]),
         .associated_dataxSI(io_in[3]),

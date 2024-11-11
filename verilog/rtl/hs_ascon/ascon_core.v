@@ -89,7 +89,6 @@ module AsconCore#(
         end
         else begin
             case(state)
-
                 // IDLE Stage
                 IDLE: begin
                     S <= {IV, {(160-k){1'b0}}, key, nonce};

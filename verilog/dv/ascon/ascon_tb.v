@@ -160,25 +160,6 @@ module ascon_tb;
 			$sdf_annotate("../../../caravel/sdf/gpio_defaults_block.sdf", uut.gpio_defaults_block_37) ;
 		end
 	`endif 
-
-	initial begin
-		$dumpfile("ascon.vcd");
-		$dumpvars(0, ascon_tb);
-
-		repeat (250) begin
-			repeat (1000) @(posedge clk);
-			// $display("+1000 cycles");
-		end
-
-		$display("%c[1;31m",27);
-		`ifdef GL
-			$display ("Monitor: Timeout, Test Mega-Project IO Ports (GL) Failed");
-		`else
-			$display ("Monitor: Timeout, Test Mega-Project IO Ports (RTL) Failed");
-		`endif
-		$display("%c[0m",27);
-		$finish;
-	end
 	always #(PERIOD) clk = ~clk;
 
 	task write;
@@ -213,11 +194,13 @@ module ascon_tb;
     endtask
 	
 	initial begin
-		$display("Start encryption!");
+		$dumpfile("ascon.vcd");
+		$dumpvars(0, ascon_tb);
+		#15230
+		$display("Start encryption! at %d", $time);
         decrypt = 0;
         rst = 1;
-		#15230
-        #(1.5*PERIOD)
+        #(2*PERIOD)
         rst = 0;
         ctr = 0;
         repeat(max) begin
@@ -233,8 +216,9 @@ module ascon_tb;
         $display("PT:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.input_data);
         #(4.5*PERIOD)
         ascon_startxSI = 0;
+		wait(ascon_readyxSO == 1'b1);
         #(500*PERIOD)
-        $display("Start decryption!");
+        $display("Start decryption! %d", $time);
         decrypt = 1;
         rst = 1;
         #(2.5*PERIOD)
@@ -280,7 +264,7 @@ module ascon_tb;
                 end
 				$display("CT:\t%h", cipher_text);
                 $display("Tag:\t%h", tag);
-                //$finish;
+                $finish; // only encrypt
             end
         end
 	end
@@ -291,7 +275,7 @@ module ascon_tb;
 		CSB  <= 1'b1;		// Force CSB high
 		#2000;
 		RSTB <= 1'b1;	    	// Release reset
-		#3000000;
+		#3000000; 
 		CSB = 1'b0;		// CSB can be released
 	end
 

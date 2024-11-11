@@ -1,5 +1,5 @@
 `default_nettype none
-`timescale 1 ns / 1 ps
+`timescale 1 ns / 1 ns
 `define k 128
 `define r 64
 `define a 12
@@ -23,15 +23,13 @@ module ascon_tb;
 
 	wire gpio;
 	wire [37:0] mprj_io;
-	wire [16:9]   mprj_io_in;
-	wire [19:17]  mprj_io_o;
 
 	reg 	  clk = 0;
-	reg 	  rst;
+	reg 	  rst = 0;
     reg       keyxSI;
     reg       noncexSI;
     reg       associated_dataxSI;
-    reg       output_dataxSI;
+    reg       input_dataxSI;
     reg       ascon_startxSI;
     reg       decrypt;
 
@@ -54,7 +52,7 @@ module ascon_tb;
 	assign mprj_io[14] = keyxSI;
 	assign mprj_io[13] = noncexSI;
 	assign mprj_io[12] = associated_dataxSI;
-	assign mprj_io[11] = output_dataxSI;
+	assign mprj_io[11] = input_dataxSI;
 	assign mprj_io[10] = ascon_startxSI;
 	assign mprj_io[9]  = decrypt;
 	
@@ -63,6 +61,8 @@ module ascon_tb;
 	assign output_dataxSO = mprj_io[19];
 	assign tagxSO = mprj_io[18];
 	assign ascon_readyxSO = mprj_io[17];
+
+
 
 	always #12.5 clock <= (clock === 1'b0);
 
@@ -184,118 +184,106 @@ module ascon_tb;
 	task write;
     input [max-1:0] rd, i, key, nonce, ass_data, ct; 
     begin
+		
         @(posedge clk);
-        if (i < `k) keyxSI = key[`k-1-i];
+        if (i <`k) keyxSI = key[`k-1-i];
         if (i < 128) noncexSI = nonce[127-i];
-        if (i < `y) output_dataxSI = ct[`y-1-i];
+        if (i < `y) input_dataxSI = ct[`y-1-i];
         if (i < `l) associated_dataxSI = ass_data[`l-1-i];
     end
-	endtask
+    endtask
 
-
-
-	task read_dec;
+    task read_dec;
     input integer i;
     begin
         @(posedge clk);
-        plain_text[i] = output_dataxSO;
-        tag[i] = tagxSO;
+        if (i < `y) plain_text[i] = output_dataxSO;
+        if (i < 128) tag[i] = tagxSO;
     end
     endtask
+
 
     task read_enc;
     input integer i;
     begin
         @(posedge clk);
-        cipher_text[i] = output_dataxSO;
-        tag[i] = tagxSO;
+        if (i < `y) cipher_text[i] = output_dataxSO;
+        if (i < 128) tag[i] = tagxSO;
     end
     endtask
 	
 	initial begin
-
-		$display("Start!");
-		decrypt = 0; //
-		rst = 1;
 		$display("Start encryption!");
-		#(1.5*PERIOD)
-		rst = 0;
-		ctr  = 0;
-		$display("Restet in en is: ", rst);
-		repeat (139) begin
-			write($random, ctr, `KEY, `NONCE, `AD, `PT);
+        decrypt = 0;
+        rst = 1;
+		#15230
+        #(1.5*PERIOD)
+        rst = 0;
+        ctr = 0;
+        repeat(max) begin
+            write($random, ctr, `KEY, `NONCE, `AD, `PT);
             ctr = ctr + 1;
-		end
-		ctr = 0;
+        end
+        ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
+		$display("Key:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.key);
+        $display("Nonce:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.nonce);
+        $display("AD:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.associated_data);
+        $display("PT:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.input_data);
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-		if(!ascon_readyxSO) begin
-			check_time = $time - check_time;
-			$display("Encryption Done! It took%d clock cycles", check_time/(2*PERIOD));
-			#(4*PERIOD)
-			repeat(139) begin
-				read_enc(ctr);
-				ctr = ctr + 1;
-			end
-		end
-		#(500*PERIOD)
+        #(500*PERIOD)
         $display("Start decryption!");
         decrypt = 1;
         rst = 1;
-		$display("Restet in decryption is: ", rst);
         #(2.5*PERIOD)
         rst = 0;
         ctr = 0;
-        repeat(139) begin
+        repeat(max) begin
             write($random, ctr, `KEY, `NONCE, `AD, `CT);
             ctr = ctr + 1;
         end
         ctr = 0;
         ascon_startxSI = 1;
         check_time = $time;
-		if(ascon_readyxSO) begin
-			check_time = $time - check_time;
-			$display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
-			#(4*PERIOD)
-			repeat(139) begin
-				read_dec(ctr);
-				ctr = ctr + 1;
-			end
-			$finish;
-		end
+		#(0.5*PERIOD)
+		$display("Key:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.key);
+        $display("Nonce:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.nonce);
+        $display("AD:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.associated_data);
+        $display("CT:\t%h", uut.chip_core.mprj.ascon_wrapper.ascon.input_data);
         #(4.5*PERIOD)
         ascon_startxSI = 0;
-		`ifdef GL
-		$display("Monitor: Test 1 Mega-Project IO (GL) Passed");
-	`else
-		$display("Monitor: Test 1 Mega-Project IO (RTL) Passed");
-	`endif
+    end
 		
+	always @(*) begin
+        if(ascon_readyxSO) begin
+			//Trỏ tới uut (caravel) -> chip core -> mprj -> .... (Theo đường dẫn của gtkwave)
+            if (uut.chip_core.mprj.ascon_wrapper.ascon.flag_dec) begin
+                check_time = $time - check_time;
+                $display("Decryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+                #(4*PERIOD)
+                repeat(max) begin
+                    read_dec(ctr);
+                    ctr = ctr + 1;
+                end
+				$display("PT:\t%h", plain_text);
+                $display("Tag:\t%h", tag);
+                $finish;
+            end else begin
+                check_time = $time - check_time;
+                $display("Encryption Done! It took%d clock cycles", check_time/(2*PERIOD));
+                #(4*PERIOD)
+                repeat(max) begin
+                    read_enc(ctr);
+                    ctr = ctr + 1;
+                end
+				$display("CT:\t%h", cipher_text);
+                $display("Tag:\t%h", tag);
+                //$finish;
+            end
+        end
 	end
-	// always @(*) begin
-	// 	if(ascon_readyxSO) begin
-	// 			check_time = $time - check_time;
-	// 			$display("Decryption Done! It took%d clock cycles", check_time/(2*20));
-	// 			#(4*PERIOD)
-	// 			repeat(max) begin
-	// 				read_dec(ctr);
-	// 				ctr = ctr + 1;
-	// 			end
-	// 			$finish;
-	// 		end else begin
-	// 			check_time = $time - check_time;
-	// 			$display("Encryption Done! It took%d clock cycles", check_time/(2*20));
-	// 			#(4*PERIOD)
-	// 			repeat(max) begin
-	// 				read_enc(ctr);
-	// 				ctr = ctr + 1;
-	// 			end
-	// 			//$finish;
-	// 		end
-
-	// 	end
 
 
 	initial begin
@@ -322,9 +310,9 @@ module ascon_tb;
 		power4 <= 1'b1;
 	end
 
-	always @(mprj_io_o) begin
-		#1 $display("MPRJ-IO state = %b ", mprj_io_o[19:17]);
-	end
+	// always @(mprj_io) begin
+	// 	#1 $display("MPRJ-IO state = %b ", mprj_io[19:17]);
+	// end
 
 	wire flash_csb;
 	wire flash_clk;

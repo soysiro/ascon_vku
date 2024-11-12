@@ -41,8 +41,9 @@ module ascon_tb;
     wire   tagxSO;
     wire   ascon_readyxSO;
     integer check_time;
+	wire [7:0] checkbits;
 
-
+	assign checkbits = mprj_io[31:24];
 	assign mprj_io[3] = (CSB == 1'b1) ? 1'b1 : 1'bz;
 
 	//input
@@ -70,7 +71,7 @@ module ascon_tb;
 	initial begin
 		repeat (100) begin
 			repeat (1000) @(posedge clk);
-				// $display("+1000 cycles");
+				$display("+1000 cycles");
 		end
 	
 		$display("%c[1;31m",27);
@@ -83,7 +84,10 @@ module ascon_tb;
 		$finish;
 		end 
 	always #(PERIOD) clk = ~clk;
-
+	initial begin
+		wait(checkbits == 8'hB4);
+		$display("Monitor: Test MPRJ (RTL) Started!");
+	end
 	task write;
     input [max-1:0] rd, i, key, nonce, ass_data, ct; 
     begin
@@ -172,8 +176,6 @@ module ascon_tb;
                     read_dec(ctr);
                     ctr = ctr + 1;
                 end
-				$display("PT:\t%h", plain_text);
-                $display("Tag:\t%h", tag);
                 $finish;
             end else begin
                 check_time = $time - check_time;
@@ -183,11 +185,11 @@ module ascon_tb;
                     read_enc(ctr);
                     ctr = ctr + 1;
                 end
-				$display("CT:\t%h", cipher_text);
-                $display("Tag:\t%h", tag);
+
                 $finish; // only encrypt
             end
         end
+
 	end
 
 
@@ -215,7 +217,7 @@ module ascon_tb;
 		power4 <= 1'b1;
 	end
 
-	always @(mprj_io) begin
+	always @(mprj_io[19:17]) begin
 		#1 $display("MPRJ-IO state = %b ", mprj_io[19:17]);
 	end
 

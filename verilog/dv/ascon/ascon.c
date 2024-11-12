@@ -27,5 +27,7 @@ void main()
 	/* Apply configuration */
 	reg_mprj_xfer = 1;
 	while (reg_mprj_xfer == 1);
+
+	reg_mprj_datal = 0xB4000000;
 }
 

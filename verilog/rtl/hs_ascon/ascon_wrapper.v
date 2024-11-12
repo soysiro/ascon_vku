@@ -8,14 +8,11 @@ module ascon_wrapper (
     input      clk,
     input      rst,
     input      [5:0] io_in,
-    output reg [2:0] io_out,
-    output reg [10:0] io_oeb
+    output     [2:0] io_out,
+    output     [10:0] io_oeb
 );
 
-    // Đặt giá trị mặc định cho io_oeb trong khối always
-    always @(*) begin
-        io_oeb = 11'b000_1111_1111;
-    end
+    assign io_oeb = 11'b000_1111_1111;
 
     // Module Ascon
     wire output_dataxSO;
@@ -36,16 +33,9 @@ module ascon_wrapper (
         .ascon_readyxSO(ascon_readyxSO)
     );
 
-    // Gán giá trị cho io_out trong khối always
-    always @(posedge clk or posedge rst) begin
-        if (rst) begin
-            io_out <= 3'b000;
-        end else begin
-            io_out[2] <= output_dataxSO;
-            io_out[1] <= tagxSO;
-            io_out[0] <= ascon_readyxSO;
-        end
-    end
+    assign io_out[2] = output_dataxSO;
+    assign io_out[1] = tagxSO;
+    assign io_out[0] = ascon_readyxSO;
 
 endmodule
 

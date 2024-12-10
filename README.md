@@ -60,8 +60,8 @@ export PDK=sky130A
 export PDK_ROOT=$HOME/uniccass_example/dependencies/pdks
 klayout `find openlane/hs_ascon/runs -iname "*.gds" | grep 'final.*\.gds' | head -n 1`
 ```
-And here is the Layout of ASCON core when it is finished running
-<img width="340" alt="Ascon_core" src="image/ascon_core.png">
+And here is the Layout of ASCON core when it is finished running  
+![Ascon_core](image/ascon_core.png)
 
 If you do not have Klayout please install: [Install Klayout](https://gist.github.com/flaport/ad2bf1cab692bdd12484d64065ca0b5c)
 
@@ -74,8 +74,9 @@ Similar to Ascon Core to open the layout:
 ```sh
 klayout `find openlane/user_project_wrapper/runs -iname "*.gds" | grep 'final.*\.gds' | head -n 1`
 ```
-And the layout when integration into Caravel SoC:
-<img width="500" alt="Resistor" src="image/wrapper.png">
+And the layout when integration into Caravel SoC:  
+![Wrapper](image/wrapper.png)
+
 
 # Further Work
 For the Ascon project, speed optimization will be achieved in two stages. First, at the RTL level, techniques like pipelining and loop unrolling will be used to improve data processing speed. Then, during physical design optimization, layout and routing will be refined to minimize delays and power consumption, ensuring efficient performance.

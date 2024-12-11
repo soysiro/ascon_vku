@@ -87,5 +87,6 @@ For the Ascon project, speed optimization will be achieved in two stages. First,
 4) Luu Quang Vu, Student, Vietnam–Korea University of Information and Communication Technology – VKU, vulq.21ce@vku.udn.vn
 5) Dang Anh Cuong, Student, Vietnam–Korea University of Information and Communication Technology – VKU, cuongda.21ce@vku.udn.vn
 # Acknowledgements
-Duy-Hieu Bui, PhD Vietnam National University, Hanoi
+1) Duy-Hieu Bui, PhD Vietnam National University, Hanoi
+2) Vietnam–Korea University of Information and Communication Technology – VKU
 

@@ -69,7 +69,7 @@ And here is the Layout of ASCON core when it is finished running
 
 If you do not have Klayout please install: [Install Klayout](https://gist.github.com/flaport/ad2bf1cab692bdd12484d64065ca0b5c)
 
-## Run integration into Caravel SoC
+# Run integration into Caravel SoC
 If you want to a layout with integration into Caravel SoC, you will run the following command: 
 ```sh
 make user_project_wrapper

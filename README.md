@@ -44,8 +44,12 @@ You look for the latest version of it, it usually appears on the first line. And
 ```sh
 volare enable --pdk sky130 0fe599b2afb6708d281543108caf8310912f54af
 ```
-## Running the ASCON Core
-First, You need to run setup caravel_user_project:
+# Running the ASCON Core
+You must clone the project to do this:
+```sh
+git clone https://github.com/soysiro/ascon_vku.git
+```
+And, You need to run setup caravel_user_project:
 ```sh
 make setup
 ```
